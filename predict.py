@@ -11,14 +11,18 @@ Author: Himanshu Singh
 Project: SMS Spam Classifier
 """
 
-import joblib
 import numpy as np
 
 from src.preprocessing import clean_text
-
 from src.config import (
     MODEL_FILE,
     VECTORIZER_FILE,
+)
+
+from src.utils import (
+    load_pickle,
+    validate_input,
+    format_percentage,
 )
 
 
@@ -27,8 +31,8 @@ from src.config import (
 # ==========================================================
 
 try:
-    model = joblib.load(MODEL_FILE)
-    vectorizer = joblib.load(VECTORIZER_FILE)
+    model = load_pickle(MODEL_FILE)
+    vectorizer = load_pickle(VECTORIZER_FILE)
 
 except Exception as e:
     raise RuntimeError(
@@ -47,79 +51,53 @@ def predict_sms(message: str) -> dict:
     Parameters
     ----------
     message : str
-        Input SMS message.
+        SMS message entered by the user.
 
     Returns
     -------
     dict
-        {
-            prediction,
-            label,
-            confidence,
-            spam_probability,
-            ham_probability
-        }
+        Prediction results.
     """
-
-    # ----------------------------------------------
-    # Validate Input
-    # ----------------------------------------------
 
     if not isinstance(message, str):
         raise TypeError("Input message must be a string.")
 
-    message = message.strip()
+    message = validate_input(message)
 
-    if not message:
-        raise ValueError("Input message cannot be empty.")
+    cleaned_text = clean_text(message)
 
-    # ----------------------------------------------
-    # Clean Text
-    # ----------------------------------------------
+    vector = vectorizer.transform([cleaned_text])
 
-    cleaned = clean_text(message)
-
-    # ----------------------------------------------
-    # Vectorize
-    # ----------------------------------------------
-
-    vector = vectorizer.transform([cleaned])
-
-    # ----------------------------------------------
-    # Prediction
-    # ----------------------------------------------
-
-    prediction = model.predict(vector)[0]
+    prediction = int(model.predict(vector)[0])
 
     probabilities = model.predict_proba(vector)[0]
 
     ham_probability = float(probabilities[0])
-
     spam_probability = float(probabilities[1])
 
-    confidence = float(np.max(probabilities))
+    confidence = max(ham_probability, spam_probability)
 
     label = "Spam" if prediction == 1 else "Ham"
 
     return {
 
-        "prediction": int(prediction),
+        "prediction": prediction,
 
         "label": label,
 
-        "confidence": round(confidence * 100, 2),
-
-        "spam_probability": round(
-            spam_probability * 100,
-            2,
+        "confidence": format_percentage(
+            confidence * 100
         ),
 
-        "ham_probability": round(
-            ham_probability * 100,
-            2,
+        "ham_probability": format_percentage(
+            ham_probability * 100
         ),
 
-        "clean_text": cleaned,
+        "spam_probability": format_percentage(
+            spam_probability * 100
+        ),
+
+        "clean_text": cleaned_text,
 
     }
 
@@ -136,7 +114,9 @@ if __name__ == "__main__":
 
     while True:
 
-        message = input("\nEnter SMS (type 'exit' to quit): ")
+        message = input(
+            "\nEnter SMS (type 'exit' to quit): "
+        )
 
         if message.lower() == "exit":
             break

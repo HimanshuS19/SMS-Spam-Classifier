@@ -7,15 +7,24 @@ Author: Himanshu Singh
 Project: SMS Spam Classifier
 """
 
-from pathlib import Path
 import time
-import joblib
 
-from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
+from sklearn.naive_bayes import MultinomialNB
 
-from src.config import LOGISTIC_REGRESSION_MAX_ITER, MODEL_DIR, MODEL_FILE, NAIVE_BAYES_ALPHA, RANDOM_STATE
+from src.config import (
+    LOGISTIC_REGRESSION_MAX_ITER,
+    MODEL_DIR,
+    MODEL_FILE,
+    NAIVE_BAYES_ALPHA,
+    RANDOM_STATE,
+)
+
+from src.utils import (
+    save_pickle,
+    load_pickle,
+)
 
 
 # ==========================================================
@@ -29,8 +38,7 @@ def train_naive_bayes(X_train, y_train):
     Returns
     -------
     tuple
-        model
-        training_time
+        (model, training_time)
     """
 
     print("\nTraining Multinomial Naive Bayes...")
@@ -39,7 +47,8 @@ def train_naive_bayes(X_train, y_train):
 
     model = MultinomialNB(
         alpha=NAIVE_BAYES_ALPHA,
-        )
+    )
+
     model.fit(X_train, y_train)
 
     training_time = time.perf_counter() - start_time
@@ -60,8 +69,7 @@ def train_logistic_regression(X_train, y_train):
     Returns
     -------
     tuple
-        model
-        training_time
+        (model, training_time)
     """
 
     print("\nTraining Logistic Regression...")
@@ -93,24 +101,26 @@ def compare_models(
     y_test,
 ):
     """
-    Compare both models using accuracy.
+    Compare models using accuracy.
 
     Returns
     -------
     tuple
-        best_model
-        best_model_name
-        scores
+        (
+            best_model,
+            best_model_name,
+            scores
+        )
     """
 
     nb_accuracy = accuracy_score(
         y_test,
-        nb_model.predict(X_test)
+        nb_model.predict(X_test),
     )
 
     lr_accuracy = accuracy_score(
         y_test,
-        lr_model.predict(X_test)
+        lr_model.predict(X_test),
     )
 
     scores = {
@@ -138,7 +148,7 @@ def compare_models(
 
 def save_model(model):
     """
-    Save the trained model.
+    Save trained model.
     """
 
     MODEL_DIR.mkdir(
@@ -148,7 +158,7 @@ def save_model(model):
 
     try:
 
-        joblib.dump(
+        save_pickle(
             model,
             MODEL_FILE,
         )
@@ -160,7 +170,7 @@ def save_model(model):
     except Exception as e:
         raise RuntimeError(
             f"Unable to save model.\n{e}"
-        )
+        ) from e
 
 
 # ==========================================================
@@ -169,21 +179,21 @@ def save_model(model):
 
 def load_model():
     """
-    Load a saved machine learning model.
+    Load trained model.
+
+    Returns
+    -------
+    object
+        Trained machine learning model.
     """
 
-    if not Path(MODEL_FILE).exists():
-        raise FileNotFoundError(
-            f"Model not found:\n{MODEL_FILE}"
-        )
-
     try:
-        return joblib.load(MODEL_FILE)
+        return load_pickle(MODEL_FILE)
 
     except Exception as e:
         raise RuntimeError(
             f"Unable to load model.\n{e}"
-        )
+        ) from e
 
 
 # ==========================================================
@@ -202,10 +212,10 @@ if __name__ == "__main__":
     print("SMS Spam Classifier - Model Training")
     print("=" * 60)
 
-    # Load dataset
+    # Load Dataset
     df = preprocess_dataset()
 
-    # Train-test split
+    # Train/Test Split
     (
         X_train_text,
         X_test_text,
@@ -213,7 +223,7 @@ if __name__ == "__main__":
         y_test,
     ) = create_train_test_split(df)
 
-    # TF-IDF
+    # Feature Engineering
     (
         X_train,
         X_test,
@@ -223,7 +233,7 @@ if __name__ == "__main__":
         X_test_text,
     )
 
-    # Train models
+    # Train Models
     nb_model, nb_time = train_naive_bayes(
         X_train,
         y_train,
@@ -234,7 +244,7 @@ if __name__ == "__main__":
         y_train,
     )
 
-    # Compare
+    # Compare Models
     (
         best_model,
         best_name,
@@ -246,13 +256,13 @@ if __name__ == "__main__":
         y_test,
     )
 
-    # Save
+    # Save Best Model
     save_model(best_model)
 
     print("\n" + "=" * 60)
     print("Training Completed Successfully")
     print("=" * 60)
 
-    print(f"Selected Model : {best_name}")
-    print(f"Training Time (NB): {nb_time:.4f} sec")
-    print(f"Training Time (LR): {lr_time:.4f} sec")
+    print(f"Selected Model      : {best_name}")
+    print(f"Naive Bayes Time    : {nb_time:.4f} sec")
+    print(f"Logistic Regression : {lr_time:.4f} sec")

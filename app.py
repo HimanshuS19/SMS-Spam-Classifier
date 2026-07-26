@@ -18,7 +18,6 @@ from src.config import (
     PROJECT_NAME,
 )
 
-
 # ==========================================================
 # Initialize Flask App
 # ==========================================================
@@ -51,13 +50,9 @@ def predict():
     Predict whether the submitted SMS is Ham or Spam.
     """
 
-    message = request.form.get(
-        "message",
-        "",
-    ).strip()
+    message = request.form.get("message", "").strip()
 
     if not message:
-
         return render_template(
             "index.html",
             project_name=PROJECT_NAME,
@@ -79,13 +74,22 @@ def predict():
             cleaned_text=result["clean_text"],
         )
 
-    except Exception as e:
+    except ValueError as e:
 
         return render_template(
             "index.html",
             project_name=PROJECT_NAME,
-            error=str(e),
             message=message,
+            error=str(e),
+        )
+
+    except Exception:
+
+        return render_template(
+            "index.html",
+            project_name=PROJECT_NAME,
+            message=message,
+            error="An unexpected error occurred while processing your request.",
         )
 
 
