@@ -215,7 +215,7 @@ Target Labels
 Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/SMS-Spam-Classifier.git
+git clone https://github.com/HimanshuS19/SMS-Spam-Classifier.git
 ```
 
 Go to project folder
