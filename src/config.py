@@ -16,23 +16,49 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 DATASET_DIR = BASE_DIR / "dataset"
+
 MODEL_DIR = BASE_DIR / "models"
+
 OUTPUT_DIR = BASE_DIR / "outputs"
 
 STATIC_DIR = BASE_DIR / "static"
+
 TEMPLATE_DIR = BASE_DIR / "templates"
 
 # ==========================================================
-# Dataset
+# Dataset Configuration
 # ==========================================================
 
-DATASET_FILE = DATASET_DIR / "spam.csv"
+# Supported dataset file formats
+SUPPORTED_DATASET_FORMATS = [
+    ".csv",
+    ".xlsx",
+    ".xls",
+    ".json",
+]
+
+# Possible column names for labels
+LABEL_COLUMNS = [
+    "label",
+    "target",
+    "class",
+    "category",
+]
+
+# Possible column names for message text
+TEXT_COLUMNS = [
+    "text",
+    "message",
+    "sms",
+    "content",
+]
 
 # ==========================================================
 # Saved Models
 # ==========================================================
 
 MODEL_FILE = MODEL_DIR / "spam_model.pkl"
+
 VECTORIZER_FILE = MODEL_DIR / "tfidf_vectorizer.pkl"
 
 # ==========================================================
@@ -42,6 +68,7 @@ VECTORIZER_FILE = MODEL_DIR / "tfidf_vectorizer.pkl"
 CLASS_DISTRIBUTION_FILE = OUTPUT_DIR / "class_distribution.png"
 
 SPAM_WORDCLOUD_FILE = OUTPUT_DIR / "spam_wordcloud.png"
+
 HAM_WORDCLOUD_FILE = OUTPUT_DIR / "ham_wordcloud.png"
 
 CONFUSION_MATRIX_FILE = OUTPUT_DIR / "confusion_matrix.png"
@@ -59,6 +86,13 @@ TEST_SIZE = 0.20
 RANDOM_STATE = 42
 
 MAX_FEATURES = 5000
+
+# TF-IDF Parameters
+NGRAM_RANGE = (1, 2)
+
+MIN_DF = 2
+
+MAX_DF = 0.95
 
 # ==========================================================
 # Model Parameters
@@ -98,6 +132,6 @@ DEBUG = True
 
 PROJECT_NAME = "SMS Spam Classifier"
 
-PROJECT_VERSION = "1.0.0"
+PROJECT_VERSION = "2.0.0"
 
 AUTHOR = "Himanshu Singh"

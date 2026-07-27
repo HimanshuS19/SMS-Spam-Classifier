@@ -3,21 +3,24 @@ train.py
 --------
 Main training pipeline for the SMS Spam Classifier.
 
-This script performs the complete workflow:
-
-1. Load Dataset
-2. Preprocess Data
-3. Split Dataset
-4. Convert Text using TF-IDF
-5. Train Machine Learning Models
-6. Compare Models
-7. Save Best Model
-8. Evaluate Best Model
-9. Generate Reports
+Workflow
+--------
+1. Scan Dataset Folder
+2. Load & Merge Datasets
+3. Preprocess Data
+4. Train/Test Split
+5. TF-IDF Feature Engineering
+6. Train Machine Learning Models
+7. Compare Models
+8. Save Best Model
+9. Evaluate Best Model
+10. Generate Reports
 
 Author: Himanshu Singh
 Project: SMS Spam Classifier
 """
+
+import time
 
 from src.preprocessing import preprocess_dataset
 
@@ -42,8 +45,10 @@ from src.evaluation import evaluate_and_save
 
 def main():
     """
-    Execute the complete machine learning pipeline.
+    Execute the complete SMS Spam Classification pipeline.
     """
+
+    overall_start = time.perf_counter()
 
     print("=" * 70)
     print("SMS Spam Classifier - Complete Training Pipeline")
@@ -53,11 +58,11 @@ def main():
     # Step 1 : Load & Preprocess Dataset
     # ------------------------------------------------------
 
-    print("\n[1/6] Loading Dataset...")
+    print("\n[1/6] Loading & Preprocessing Dataset...")
 
     dataframe = preprocess_dataset()
 
-    print(f"✔ Dataset Loaded ({len(dataframe)} records)")
+    print(f"\n✔ Final Dataset Ready ({len(dataframe)} records)")
 
     # ------------------------------------------------------
     # Step 2 : Train/Test Split
@@ -73,7 +78,7 @@ def main():
     ) = create_train_test_split(dataframe)
 
     # ------------------------------------------------------
-    # Step 3 : TF-IDF Vectorization
+    # Step 3 : Feature Engineering
     # ------------------------------------------------------
 
     print("\n[3/6] Feature Engineering...")
@@ -123,7 +128,7 @@ def main():
     save_model(best_model)
 
     # ------------------------------------------------------
-    # Step 6 : Evaluate Best Model
+    # Step 6 : Evaluation
     # ------------------------------------------------------
 
     print("\n[6/6] Evaluating Best Model...")
@@ -135,22 +140,33 @@ def main():
         scores,
     )
 
+    overall_time = (
+        time.perf_counter()
+        - overall_start
+    )
+
     print("\n" + "=" * 70)
     print("Training Pipeline Completed Successfully")
     print("=" * 70)
 
-    print(f"\nBest Model        : {best_model_name}")
-    print(f"Naive Bayes Time : {nb_time:.4f} sec")
-    print(f"Logistic Reg.    : {lr_time:.4f} sec")
+    print(f"\nBest Model         : {best_model_name}")
+    print(f"Training Samples   : {X_train.shape[0]}")
+    print(f"Testing Samples    : {X_test.shape[0]}")
+    print(f"Features Generated : {X_train.shape[1]}")
+
+    print(f"\nNaive Bayes Time   : {nb_time:.4f} sec")
+    print(f"Logistic Reg. Time : {lr_time:.4f} sec")
+    print(f"Total Pipeline Time: {overall_time:.2f} sec")
 
     print("\nGenerated Files")
-
-    print("----------------------------------------")
+    print("-" * 40)
     print("✔ models/spam_model.pkl")
     print("✔ models/tfidf_vectorizer.pkl")
     print("✔ outputs/evaluation_report.txt")
     print("✔ outputs/confusion_matrix.png")
     print("✔ outputs/model_comparison.png")
+
+    print("\nProject Ready for Prediction & Deployment.")
 
 
 # ==========================================================

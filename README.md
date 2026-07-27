@@ -10,7 +10,19 @@
 
 ### 🚀 AI-Powered SMS Spam Detection using Natural Language Processing & Machine Learning
 
-Detect whether an SMS message is **Spam** or **Ham** using a complete end-to-end Machine Learning pipeline built with **Python**, **Scikit-Learn**, and **Flask**.
+Detect whether an SMS message is **Spam** or **Ham** using an end-to-end Machine Learning pipeline powered by **Natural Language Processing (NLP)** and **Scikit-Learn**.
+
+Unlike many basic implementations, this project supports:
+
+- 📂 Automatic loading of multiple datasets
+- 🔄 Dataset merging & duplicate removal
+- 🧹 Advanced text preprocessing
+- 📊 Automatic model comparison
+- 🤖 Intelligent model selection
+- 🌐 Premium Flask web interface
+- 📈 Evaluation report generation
+
+The project is designed with a modular architecture, making it easy to extend with additional datasets and machine learning models.
 
 </div>
 
@@ -36,9 +48,15 @@ The best-performing model is automatically selected and saved for deployment.
 
 # ✨ Features
 
-✔ Complete NLP preprocessing pipeline
+✔ Automatic Multi-Dataset Loading
 
-✔ Text Cleaning
+✔ Automatic Dataset Merging
+
+✔ Duplicate SMS Removal
+
+✔ Automatic Label Detection
+
+✔ NLP Text Cleaning
 
 ✔ Stopword Removal
 
@@ -64,43 +82,46 @@ The best-performing model is automatically selected and saved for deployment.
 
 ✔ Interactive Flask Web Interface
 
-✔ Responsive Dark Theme UI
+✔ Premium Dark Theme UI
 
-✔ GitHub Ready Project Structure
+✔ Animated Background
+
+✔ Responsive Design
+
+✔ Modular Project Structure
+
+✔ GitHub Ready
 
 ---
 
 # 🧠 Machine Learning Pipeline
 
 ```
-SMS Dataset
+Dataset Folder
       │
       ▼
-Load Dataset
+Scan All Datasets
       │
       ▼
-Text Cleaning
+Merge Datasets
       │
       ▼
-Stopword Removal
+Remove Duplicates
       │
       ▼
-Porter Stemming
+Encode Labels
       │
       ▼
-TF-IDF Vectorization
+Clean Text
       │
       ▼
-Train/Test Split
+TF-IDF
       │
       ▼
-Naive Bayes
+Train Models
       │
       ▼
-Logistic Regression
-      │
-      ▼
-Model Comparison
+Compare Models
       │
       ▼
 Best Model Saved
@@ -117,7 +138,11 @@ Prediction
 SMS-Spam-Classifier/
 │
 ├── dataset/
-│   └── spam.csv
+│    │
+│    ├── spam.csv
+│    ├── combined_dataset.csv
+│    ├── dataset2.csv
+│    └── ...
 │
 ├── models/
 │   ├── spam_model.pkl
@@ -141,7 +166,9 @@ SMS-Spam-Classifier/
 │
 ├── static/
 │   ├── css/
+│   │      style.css
 │   └── js/
+│          script.js
 │
 ├── templates/
 │   └── index.html
@@ -193,20 +220,31 @@ SMS-Spam-Classifier/
 
 # 📊 Dataset
 
-**Dataset Used**
+The project automatically scans the **dataset/** folder and loads every supported dataset.
 
-SMS Spam Collection Dataset
+Supported formats
 
-- Total Messages: **5,572**
-- Ham Messages: **4,825**
-- Spam Messages: **747**
+- CSV
+- Excel (.xlsx)
+- Excel (.xls)
+- JSON
+
+Features
+
+- Automatic dataset discovery
+- Automatic merging
+- Duplicate removal
+- Automatic column detection
+- Robust CSV encoding detection
+
+Simply place additional datasets inside the **dataset/** folder and retrain the model.
 
 Target Labels
 
 | Label | Meaning |
 |--------|----------|
-| 0 | Ham |
-| 1 | Spam |
+| 0      |   Ham    |
+| 1      |   Spam   |
 
 ---
 
@@ -320,7 +358,30 @@ The application will display
 - Ham Probability
 - Processed Text
 
+
+
 ---
+User
+
+↓
+
+Flask UI
+
+↓
+
+Prediction API
+
+↓
+
+TF-IDF Vectorizer
+
+↓
+
+Logistic Regression
+
+↓
+
+Prediction Result
 
 # 🧪 Model Performance
 
@@ -473,19 +534,23 @@ assets/result.png
 
 Planned enhancements include:
 
-- Merge larger modern SMS spam datasets (10K+ messages)
-- Hyperparameter tuning using GridSearchCV
-- Character-level TF-IDF features
-- N-gram (Bigram/Trigram) support
-- Support Vector Machine (LinearSVC)
-- XGBoost classifier
-- LightGBM classifier
-- Deep Learning with LSTM
-- Transformer-based models (BERT)
-- Multilingual spam detection
-- Email spam classification
+- Support 50K+ SMS datasets
+- Hyperparameter tuning
+- Character-level TF-IDF
+- N-gram Features
+- Linear SVM
+- Random Forest
+- XGBoost
+- CatBoost
+- LightGBM
+- Deep Learning (LSTM)
+- Transformer Models (BERT)
 - Explainable AI (SHAP/LIME)
-- Cloud deployment with Docker and CI/CD
+- Docker Deployment
+- REST API
+- CI/CD Pipeline
+- Model Versioning
+- Automatic Dataset Download
 
 ---
 
