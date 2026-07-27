@@ -11,10 +11,10 @@ Project: SMS Spam Classifier
 import re
 import warnings
 
+from pathlib import Path
+
 import nltk
 import pandas as pd
-
-from pathlib import Path
 
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
@@ -23,7 +23,6 @@ from src.config import (
     DATASET_DIR,
     LABEL_MAPPING,
 )
-
 
 # ==========================================================
 # Download NLTK Resources (Only if Missing)
@@ -35,13 +34,11 @@ except LookupError:
     nltk.download("stopwords")
     STOP_WORDS = set(stopwords.words("english"))
 
-
 # ==========================================================
 # Initialize Stemmer
 # ==========================================================
 
 STEMMER = PorterStemmer()
-
 
 # ==========================================================
 # Supported Dataset Formats
@@ -53,7 +50,6 @@ SUPPORTED_EXTENSIONS = {
     ".xls",
     ".json",
 }
-
 
 # ==========================================================
 # Text Cleaning
@@ -83,17 +79,17 @@ def clean_text(text: str) -> str:
 
     return " ".join(cleaned_words)
 
-
 # ==========================================================
 # Scan Dataset Folder
 # ==========================================================
 
 def scan_dataset_directory():
     """
-    Returns every supported dataset inside dataset folder.
+    Returns all supported datasets inside dataset folder.
     """
 
     if not DATASET_DIR.exists():
+
         raise FileNotFoundError(
             f"Dataset directory not found:\n{DATASET_DIR}"
         )
@@ -107,12 +103,12 @@ def scan_dataset_directory():
     )
 
     if not dataset_files:
+
         raise FileNotFoundError(
             "No supported datasets found."
         )
 
     return dataset_files
-
 
 # ==========================================================
 # Read Single Dataset
@@ -121,6 +117,12 @@ def scan_dataset_directory():
 def load_single_dataset(file_path: Path):
     """
     Load one dataset.
+
+    Supports:
+    - CSV
+    - TSV (.csv with tab separator)
+    - Excel
+    - JSON
     """
 
     suffix = file_path.suffix.lower()
@@ -129,23 +131,69 @@ def load_single_dataset(file_path: Path):
 
         if suffix == ".csv":
 
-            try:
-                df = pd.read_csv(file_path)
+            encodings = [
+                "utf-8",
+                "latin-1",
+                "cp1252",
+            ]
 
-            except UnicodeDecodeError:
+            df = None
 
+            for encoding in encodings:
+
+                # --------------------------------------------------
+                # Try TAB-separated first
+                # --------------------------------------------------
                 try:
-                    df = pd.read_csv(
+
+                    temp = pd.read_csv(
                         file_path,
-                        encoding="latin-1",
+                        sep="\t",
+                        header=None,
+                        names=["label", "text"],
+                        encoding=encoding,
+                        engine="python",
+                        quoting=3,
+                        keep_default_na=False,
+                        on_bad_lines="skip",
                     )
 
-                except UnicodeDecodeError:
-
-                    df = pd.read_csv(
-                        file_path,
-                        encoding="cp1252",
+                    valid = (
+                        temp["label"]
+                        .astype(str)
+                        .str.lower()
+                        .str.strip()
+                        .isin(["ham", "spam"])
+                        .mean()
                     )
+
+                    if valid >= 0.90:
+                        df = temp
+                        break
+
+                except Exception:
+                    pass
+
+                # --------------------------------------------------
+                # Try normal CSV
+                # --------------------------------------------------
+                try:
+
+                    temp = pd.read_csv(
+                        file_path,
+                        encoding=encoding,
+                        engine="python",
+                        on_bad_lines="skip",
+                    )
+
+                    df = temp
+                    break
+
+                except Exception:
+                    pass
+
+            if df is None:
+                raise ValueError("Unable to read CSV file.")
 
         elif suffix in [".xlsx", ".xls"]:
 
@@ -161,7 +209,9 @@ def load_single_dataset(file_path: Path):
                 f"Unsupported file type: {suffix}"
             )
 
-        print(f"✓ {file_path.name:<25} Rows : {len(df)}")
+        print(
+            f"✓ {file_path.name:<25} Rows : {len(df)}"
+        )
 
         return df
 
@@ -180,22 +230,42 @@ def load_single_dataset(file_path: Path):
 
 def standardize_columns(df: pd.DataFrame):
     """
-    Convert different dataset formats into:
+    Convert every dataset into:
 
-    label
-    text
+        label
+        text
     """
 
-    columns = {
-        col.lower().strip(): col
+    df = df.copy()
+
+    # --------------------------------------------------
+    # Already standardised
+    # --------------------------------------------------
+
+    if {"label", "text"}.issubset(df.columns):
+
+        return df[["label", "text"]]
+
+    # --------------------------------------------------
+    # Normalise column names
+    # --------------------------------------------------
+
+    df.columns = [
+        str(col).strip().lower()
         for col in df.columns
-    }
+    ]
+
+    # --------------------------------------------------
+    # Standard column names
+    # --------------------------------------------------
 
     label_candidates = [
         "label",
         "target",
         "class",
         "category",
+        "type",
+        "v1",
     ]
 
     text_candidates = [
@@ -203,56 +273,141 @@ def standardize_columns(df: pd.DataFrame):
         "message",
         "sms",
         "content",
+        "msg",
+        "v2",
     ]
 
     label_column = None
     text_column = None
 
     for col in label_candidates:
-        if col in columns:
-            label_column = columns[col]
+        if col in df.columns:
+            label_column = col
             break
 
     for col in text_candidates:
-        if col in columns:
-            text_column = columns[col]
+        if col in df.columns:
+            text_column = col
             break
 
-    if label_column is None or text_column is None:
-        raise ValueError(
-            "Could not detect label/text columns."
+    if label_column and text_column:
+
+        new_df = df[
+            [label_column, text_column]
+        ].copy()
+
+        new_df.columns = [
+            "label",
+            "text",
+        ]
+
+        return new_df
+
+    # --------------------------------------------------
+    # Detect if first column header itself contains
+    # "ham\tmessage..."
+    # --------------------------------------------------
+
+    first_header = str(df.columns[0])
+
+    if "\t" in first_header:
+
+        rows = []
+
+        first_line = "\t".join(df.columns.astype(str))
+
+        lines = [first_line]
+
+        for row in df.itertuples(index=False):
+            lines.append("\t".join(map(str, row)))
+
+        for line in lines:
+
+            parts = line.split("\t", 1)
+
+            if len(parts) != 2:
+                continue
+
+            label = parts[0].strip().lower()
+
+            if label not in ["ham", "spam"]:
+                continue
+
+            rows.append([
+                label,
+                parts[1].strip(),
+            ])
+
+        if rows:
+
+            return pd.DataFrame(
+                rows,
+                columns=["label", "text"],
+            )
+
+    # --------------------------------------------------
+    # One-column dataset
+    # --------------------------------------------------
+
+    if len(df.columns) == 1:
+
+        extracted = (
+            df.iloc[:, 0]
+            .astype(str)
+            .str.extract(
+                r"^(ham|spam)\s+(.*)$",
+                flags=re.IGNORECASE,
+            )
         )
 
-    df = df[[label_column, text_column]].copy()
+        if extracted.notna().all().all():
 
-    df.columns = [
-        "label",
-        "text",
-    ]
+            extracted.columns = [
+                "label",
+                "text",
+            ]
 
-    df["label"] = (
-        df["label"]
+            return extracted
+
+    # --------------------------------------------------
+    # First column is label
+    # --------------------------------------------------
+
+    first = (
+        df.iloc[:, 0]
         .astype(str)
         .str.lower()
         .str.strip()
     )
 
-    df["text"] = (
-        df["text"]
-        .astype(str)
-        .str.strip()
+    if first.isin(["ham", "spam"]).mean() >= 0.80:
+
+        message = (
+            df.iloc[:, 1:]
+            .fillna("")
+            .astype(str)
+            .agg(" ".join, axis=1)
+            .str.strip()
+        )
+
+        return pd.DataFrame(
+            {
+                "label": first,
+                "text": message,
+            }
+        )
+
+    raise ValueError(
+        "Could not detect dataset format."
     )
-
-    return df
-
 # ==========================================================
 # Load & Merge All Datasets
 # ==========================================================
 
 def load_dataset() -> pd.DataFrame:
     """
-    Load and merge every supported dataset inside
-    the dataset directory.
+    Load every supported dataset from dataset folder,
+    automatically merge them and remove duplicates.
     """
 
     print("=" * 60)
@@ -269,10 +424,76 @@ def load_dataset() -> pd.DataFrame:
 
         df = load_single_dataset(file)
 
+        # --------------------------------------------------
+        # Fallback Parser
+        #
+        # Supports datasets like:
+        #
+        # ham Hello...
+        # spam Win money...
+        # hamHello...
+        # spamFree...
+        # --------------------------------------------------
+
+        if (
+            file.suffix.lower() == ".csv"
+            and (
+                df is None
+                or len(df.columns) == 1
+            )
+        ):
+
+            try:
+
+                rows = []
+
+                lines = file.read_text(
+                    encoding="latin-1",
+                    errors="ignore",
+                ).splitlines()
+
+                for line in lines:
+
+                    line = line.strip()
+
+                    if not line:
+                        continue
+
+                    match = re.match(
+                        r"^(ham|spam)\s*(.+)$",
+                        line,
+                        flags=re.IGNORECASE,
+                    )
+
+                    if match:
+
+                        rows.append([
+                            match.group(1).lower(),
+                            match.group(2).strip(),
+                        ])
+
+                if rows:
+
+                    df = pd.DataFrame(
+                        rows,
+                        columns=[
+                            "label",
+                            "text",
+                        ],
+                    )
+
+                    print(
+                        f"✓ {file.name:<25} Rows : {len(df)} (fallback parser)"
+                    )
+
+            except Exception:
+                pass
+
         if df is None:
             continue
 
         try:
+
             df = standardize_columns(df)
 
         except Exception as e:
@@ -280,16 +501,61 @@ def load_dataset() -> pd.DataFrame:
             warnings.warn(
                 f"Skipped {file.name}\n{e}"
             )
+
             continue
+
+        # ------------------------------
+        # Clean label column
+        # ------------------------------
+
+        df["label"] = (
+            df["label"]
+            .astype(str)
+            .str.lower()
+            .str.strip()
+        )
+
+        # ------------------------------
+        # Clean text column
+        # ------------------------------
+
+        df["text"] = (
+            df["text"]
+            .astype(str)
+            .str.strip()
+        )
+
+        # Keep only ham/spam
+
+        df = df[
+            df["label"].isin(
+                LABEL_MAPPING.keys()
+            )
+        ]
+
+        # Remove empty messages
+
+        df = df[
+            df["text"] != ""
+        ]
 
         datasets.append(df)
 
         total_rows += len(df)
 
+    # ------------------------------------------------------
+    # No dataset found
+    # ------------------------------------------------------
+
     if not datasets:
+
         raise ValueError(
             "No valid datasets available."
         )
+
+    # ------------------------------------------------------
+    # Merge datasets
+    # ------------------------------------------------------
 
     df = pd.concat(
         datasets,
@@ -298,40 +564,48 @@ def load_dataset() -> pd.DataFrame:
 
     before = len(df)
 
-    # Remove empty messages
-    df.dropna(
-        subset=["text"],
-        inplace=True,
-    )
+    # Remove duplicate SMS
 
-    df["text"] = (
-        df["text"]
-        .astype(str)
-        .str.strip()
-    )
-
-    df = df[
-        df["text"] != ""
-    ]
-
-    # Remove duplicate SMS messages
     df.drop_duplicates(
+
         subset="text",
+
         inplace=True,
+
     )
 
     df.reset_index(
+
         drop=True,
+
         inplace=True,
+
     )
 
     duplicates_removed = before - len(df)
 
+    # ------------------------------------------------------
+    # Statistics
+    # ------------------------------------------------------
+
     print("\n" + "-" * 60)
-    print(f"Datasets Found      : {len(datasets)}")
-    print(f"Original Rows       : {total_rows}")
-    print(f"Duplicates Removed  : {duplicates_removed}")
-    print(f"Final Dataset Rows  : {len(df)}")
+
+    print(
+        f"Datasets Found      : {len(datasets)}"
+    )
+
+    print(
+        f"Original Rows       : {total_rows}"
+    )
+
+    print(
+        f"Duplicates Removed  : {duplicates_removed}"
+    )
+
+    print(
+        f"Final Dataset Rows  : {len(df)}"
+    )
+
     print("-" * 60)
 
     return df
@@ -345,7 +619,7 @@ def encode_labels(
     df: pd.DataFrame,
 ) -> pd.DataFrame:
     """
-    Convert:
+    Encode labels into numeric values.
 
     ham  -> 0
     spam -> 1
@@ -360,9 +634,10 @@ def encode_labels(
         .str.strip()
     )
 
-    invalid_labels = set(
-        df["label"].unique()
-    ) - set(LABEL_MAPPING.keys())
+    invalid_labels = (
+        set(df["label"].unique())
+        - set(LABEL_MAPPING.keys())
+    )
 
     if invalid_labels:
 
@@ -386,15 +661,12 @@ def preprocess_dataset():
     """
     Complete preprocessing pipeline.
 
-    Returns
-    -------
-    DataFrame
-
-    Columns
-    -------
-    label
-    text
-    clean_text
+    Steps
+    -----
+    1. Load all datasets
+    2. Merge datasets
+    3. Encode labels
+    4. Clean text
     """
 
     df = load_dataset()
@@ -446,7 +718,7 @@ if __name__ == "__main__":
         ).round(2)
     )
 
-    print("\nFirst Five Records")
+    print("\nSample Records")
 
     print(
         df.head()
@@ -454,9 +726,7 @@ if __name__ == "__main__":
 
     print("\nSample Cleaning\n")
 
-    for i in range(
-        min(5, len(df))
-    ):
+    for i in range(min(5, len(df))):
 
         print(
             f"[{i+1}] Original : "
@@ -469,3 +739,26 @@ if __name__ == "__main__":
         )
 
         print("-" * 70)
+
+    print("\nDataset Summary")
+
+    print("-" * 60)
+
+    print(f"Total Messages : {len(df)}")
+
+    print(
+        f"Ham Messages   : {(df['label'] == 0).sum()}"
+    )
+
+    print(
+        f"Spam Messages  : {(df['label'] == 1).sum()}"
+    )
+
+    print(
+        f"Spam Ratio     : "
+        f"{((df['label'] == 1).mean() * 100):.2f}%"
+    )
+
+    print("-" * 60)
+
+    print("\n✔ preprocessing.py executed successfully.")
