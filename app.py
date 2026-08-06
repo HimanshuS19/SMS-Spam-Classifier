@@ -1,10 +1,10 @@
 """
 app.py
 ------
-Flask web application for the SMS Spam Classifier.
+Flask web application for the SpamShield AI: Intelligent SMS Spam Detection System.
 
 Author: Himanshu Singh
-Project: SMS Spam Classifier
+Project: SpamShield AI: Intelligent SMS Spam Detection System
 """
 
 from flask import Flask, render_template, request

@@ -1,7 +1,7 @@
 """
 predict.py
 ----------
-Prediction engine for the SMS Spam Classifier.
+Prediction engine for the SpamShield AI: Intelligent SMS Spam Detection System.
 
 Loads the trained model and TF-IDF vectorizer,
 preprocesses incoming SMS text, and returns
@@ -13,7 +13,7 @@ Supports:
 - Optimized Linear SVM
 
 Author: Himanshu Singh
-Project: SMS Spam Classifier
+Project: SpamShield AI: Intelligent SMS Spam Detection System
 """
 
 from scipy.special import expit
@@ -184,7 +184,7 @@ def predict_sms(message: str) -> dict:
 if __name__ == "__main__":
 
     print("=" * 60)
-    print("SMS Spam Classifier - Prediction")
+    print("SpamShield AI: Intelligent SMS Spam Detection System - Prediction")
     print("=" * 60)
 
     while True:

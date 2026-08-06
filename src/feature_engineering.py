@@ -2,10 +2,10 @@
 feature_engineering.py
 ----------------------
 Handles train-test splitting and TF-IDF feature engineering
-for the SMS Spam Classifier project.
+for the SpamShield AI: Intelligent SMS Spam Detection System project.
 
 Author: Himanshu Singh
-Project: SMS Spam Classifier
+Project: SpamShield AI: Intelligent SMS Spam Detection System
 """
 
 from pathlib import Path

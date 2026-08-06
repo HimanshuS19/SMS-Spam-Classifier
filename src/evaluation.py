@@ -2,10 +2,10 @@
 evaluation.py
 -------------
 Evaluates trained machine learning models for the
-SMS Spam Classifier project.
+SpamShield AI: Intelligent SMS Spam Detection System project.
 
 Author: Himanshu Singh
-Project: SMS Spam Classifier
+Project: SpamShield AI: Intelligent SMS Spam Detection System
 """
 
 import matplotlib.pyplot as plt
@@ -167,7 +167,7 @@ def save_evaluation_report(metrics):
             encoding="utf-8",
         ) as file:
 
-            file.write("SMS Spam Classifier Evaluation Report\n")
+            file.write("SpamShield AI: Intelligent SMS Spam Detection System Evaluation Report\n")
             file.write("=" * 45)
             file.write("\n\n")
 
@@ -567,7 +567,7 @@ if __name__ == "__main__":
     )
 
     print("=" * 60)
-    print("SMS Spam Classifier - Evaluation")
+    print("SpamShield AI: Intelligent SMS Spam Detection System - Evaluation")
     print("=" * 60)
 
     # Load dataset

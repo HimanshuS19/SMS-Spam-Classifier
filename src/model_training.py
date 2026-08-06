@@ -4,7 +4,7 @@ model_training.py
 Trains machine learning models for SMS Spam Classification.
 
 Author: Himanshu Singh
-Project: SMS Spam Classifier
+Project: SpamShield AI: Intelligent SMS Spam Detection System
 """
 
 import time
@@ -434,7 +434,7 @@ if __name__ == "__main__":
     )
 
     print("=" * 60)
-    print("SMS Spam Classifier - Model Training")
+    print("SpamShield AI: Intelligent SMS Spam Detection System - Model Training")
     print("=" * 60)
 
     # Load Dataset

@@ -1,13 +1,13 @@
 """
 utils.py
 --------
-Common utility functions for the SMS Spam Classifier.
+Common utility functions for the SpamShield AI: Intelligent SMS Spam Detection System.
 
 These helper functions are shared across multiple modules
 to avoid code duplication.
 
 Author: Himanshu Singh
-Project: SMS Spam Classifier
+Project: SpamShield AI: Intelligent SMS Spam Detection System
 """
 
 from pathlib import Path

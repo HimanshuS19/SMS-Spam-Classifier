@@ -1,10 +1,10 @@
 """
 config.py
 ---------
-Central configuration file for the SMS Spam Classifier project.
+Central configuration file for the SpamShield AI project.
 
 Author: Himanshu Singh
-Project: SMS Spam Classifier
+Project: SpamShield AI: Intelligent SMS Spam Detection System
 """
 
 from pathlib import Path
@@ -150,7 +150,7 @@ DEBUG = True
 # Application Information
 # ==========================================================
 
-PROJECT_NAME = "SMS Spam Classifier"
+PROJECT_NAME = "SpamShield AI: Intelligent SMS Spam Detection System"
 
 PROJECT_VERSION = "2.0.0"
 

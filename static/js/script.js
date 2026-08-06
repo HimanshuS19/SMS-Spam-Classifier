@@ -1,8 +1,7 @@
 /*
 ==========================================================
-SMS Spam Classifier
+SpamShield AI: Intelligent SMS Spam Detection System
 Frontend JavaScript
-
 Author : Himanshu Singh
 ==========================================================
 */

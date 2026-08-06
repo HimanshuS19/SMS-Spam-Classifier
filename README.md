@@ -1,4 +1,4 @@
-# 📩 SMS Spam Classifier
+# 📩 SpamShield AI: Intelligent SMS Spam Detection System
 
 <div align="center">
 

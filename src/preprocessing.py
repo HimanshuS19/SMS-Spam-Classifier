@@ -5,7 +5,7 @@ Handles dataset loading, preprocessing, text cleaning,
 dataset merging and label encoding.
 
 Author: Himanshu Singh
-Project: SMS Spam Classifier
+Project: SpamShield AI: Intelligent SMS Spam Detection System
 """
 
 import re

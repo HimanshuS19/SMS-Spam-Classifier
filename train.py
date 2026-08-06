@@ -1,7 +1,7 @@
 """
 train.py
 --------
-Main training pipeline for the SMS Spam Classifier.
+Main training pipeline for the SpamShield AI: Intelligent SMS Spam Detection System.
 
 Workflow
 --------
@@ -17,7 +17,7 @@ Workflow
 10. Generate Reports
 
 Author: Himanshu Singh
-Project: SMS Spam Classifier
+Project: SpamShield AI: Intelligent SMS Spam Detection System
 """
 
 import time
@@ -52,7 +52,7 @@ def main():
     overall_start = time.perf_counter()
 
     print("=" * 70)
-    print("SMS Spam Classifier - Complete Training Pipeline")
+    print("SpamShield AI: Intelligent SMS Spam Detection System - Complete Training Pipeline")
     print("=" * 70)
 
     # ------------------------------------------------------
