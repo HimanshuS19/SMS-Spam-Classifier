@@ -1,18 +1,18 @@
 SMS Spam Classifier Evaluation Report
 =============================================
 
-Accuracy : 0.9636
-Precision: 0.9544
-Recall   : 0.8907
-F1 Score : 0.9215
+Accuracy : 0.9654
+Precision: 0.9602
+Recall   : 0.8926
+F1 Score : 0.9251
 
 Classification Report
 ---------------------------------------------
               precision    recall  f1-score   support
 
          Ham       0.97      0.99      0.98      1712
-        Spam       0.95      0.89      0.92       540
+        Spam       0.96      0.89      0.93       540
 
-    accuracy                           0.96      2252
+    accuracy                           0.97      2252
    macro avg       0.96      0.94      0.95      2252
-weighted avg       0.96      0.96      0.96      2252
+weighted avg       0.97      0.97      0.96      2252

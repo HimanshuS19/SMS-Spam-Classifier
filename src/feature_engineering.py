@@ -17,6 +17,10 @@ from sklearn.model_selection import train_test_split
 
 from src.config import (
     MAX_FEATURES,
+    NGRAM_RANGE,
+    MIN_DF,
+    MAX_DF,
+    SUBLINEAR_TF,
     MODEL_DIR,
     RANDOM_STATE,
     TEST_SIZE,
@@ -82,23 +86,31 @@ def create_train_test_split(
 
 def build_tfidf_vectorizer() -> TfidfVectorizer:
     """
-    Creates a TF-IDF Vectorizer.
-
-    Returns
-    -------
-    TfidfVectorizer
+    Creates an optimized TF-IDF Vectorizer.
     """
 
     print("\nBuilding TF-IDF Vectorizer...")
 
+    print("-" * 40)
+    print("TF-IDF Configuration")
+    print("-" * 40)
+    print(f"Max Features : {MAX_FEATURES}")
+    print(f"N-Grams      : {NGRAM_RANGE}")
+    print(f"Min DF       : {MIN_DF}")
+    print(f"Max DF       : {MAX_DF}")
+    print(f"Sublinear TF : {SUBLINEAR_TF}")
+
     vectorizer = TfidfVectorizer(
-        max_features=MAX_FEATURES
+        max_features=MAX_FEATURES,
+        ngram_range=NGRAM_RANGE,
+        min_df=MIN_DF,
+        max_df=MAX_DF,
+        sublinear_tf=SUBLINEAR_TF,
     )
 
-    print("✔ Vectorizer Created")
+    print("\n✔ Vectorizer Created")
 
     return vectorizer
-
 
 # ==========================================================
 # Vectorize Data
@@ -109,20 +121,8 @@ def vectorize_data(
     X_test_text: pd.Series,
 ) -> tuple:
     """
-    Fits TF-IDF on training data only and transforms
+    Fits TF-IDF on training data and transforms
     both training and testing datasets.
-
-    Parameters
-    ----------
-    X_train_text : pd.Series
-    X_test_text : pd.Series
-
-    Returns
-    -------
-    tuple
-        X_train
-        X_test
-        vectorizer
     """
 
     vectorizer = build_tfidf_vectorizer()
@@ -135,8 +135,17 @@ def vectorize_data(
 
     print("✔ Text Vectorization Completed")
 
-    return X_train, X_test, vectorizer
+    print("\nVocabulary Statistics")
+    print("-" * 40)
+    print(f"Vocabulary Size : {len(vectorizer.vocabulary_)}")
+    print(f"Training Shape  : {X_train.shape}")
+    print(f"Testing Shape   : {X_test.shape}")
 
+    return (
+        X_train,
+        X_test,
+        vectorizer,
+    )
 
 # ==========================================================
 # Save Vectorizer

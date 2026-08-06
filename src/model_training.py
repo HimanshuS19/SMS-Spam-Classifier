@@ -13,6 +13,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
+from sklearn.model_selection import GridSearchCV
 
 from src.config import (
     LOGISTIC_REGRESSION_MAX_ITER,
@@ -20,6 +21,10 @@ from src.config import (
     MODEL_FILE,
     NAIVE_BAYES_ALPHA,
     RANDOM_STATE,
+    SVM_PARAM_GRID,
+    GRID_SEARCH_CV,
+    GRID_SEARCH_SCORING,
+    GRID_SEARCH_JOBS,
 )
 
 from src.utils import (
@@ -91,28 +96,40 @@ def train_logistic_regression(X_train, y_train):
     return model, training_time
 
 # ==========================================================
-# Train Linear SVM
+# Train Optimized Linear SVM
 # ==========================================================
 
 def train_linear_svm(X_train, y_train):
     """
-    Train a Linear Support Vector Machine classifier.
+    Train an optimized Linear Support Vector Machine
+    using GridSearchCV.
 
     Returns
     -------
     tuple
-        (model, training_time)
+        (best_model, training_time)
     """
 
-    print("\nTraining Linear SVM...")
+    print("\nTraining Optimized Linear SVM...")
 
     start_time = time.perf_counter()
 
-    model = LinearSVC(
+    base_model = LinearSVC(
         random_state=RANDOM_STATE,
     )
 
-    model.fit(
+    grid_search = GridSearchCV(
+        estimator=base_model,
+        param_grid=SVM_PARAM_GRID,
+        cv=GRID_SEARCH_CV,
+        scoring=GRID_SEARCH_SCORING,
+        n_jobs=GRID_SEARCH_JOBS,
+        verbose=1,
+    )
+
+    print("\nRunning Grid Search...\n")
+
+    grid_search.fit(
         X_train,
         y_train,
     )
@@ -122,15 +139,24 @@ def train_linear_svm(X_train, y_train):
         - start_time
     )
 
+    print("\nBest Parameters")
+    print("-" * 30)
+
+    for key, value in grid_search.best_params_.items():
+        print(f"{key:<10}: {value}")
+
     print(
-        f"✔ Completed in {training_time:.4f} seconds"
+        f"\nBest CV F1 Score : {grid_search.best_score_:.4f}"
+    )
+
+    print(
+        f"\n✔ Completed in {training_time:.4f} seconds"
     )
 
     return (
-        model,
+        grid_search.best_estimator_,
         training_time,
     )
-
 # ==========================================================
 # Compare Models
 # ==========================================================
@@ -173,7 +199,7 @@ def compare_models(
     scores = {
         "Naive Bayes": nb_accuracy,
         "Logistic Regression": lr_accuracy,
-        "Linear SVM": svm_accuracy,
+        "Optimized Linear SVM": svm_accuracy,
     }
 
     print("\nModel Comparison")
@@ -193,7 +219,7 @@ def compare_models(
     best_model = {
         "Naive Bayes": nb_model,
         "Logistic Regression": lr_model,
-        "Linear SVM": svm_model,
+        "Optimized Linear SVM": svm_model,
     }[best_name]
 
     print(f"\n✔ Best Model: {best_name}")

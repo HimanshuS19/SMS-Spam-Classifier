@@ -82,17 +82,17 @@ EVALUATION_REPORT_FILE = OUTPUT_DIR / "evaluation_report.txt"
 # ==========================================================
 
 TEST_SIZE = 0.20
-
 RANDOM_STATE = 42
+MAX_FEATURES = 8000
 
-MAX_FEATURES = 5000
+# ==========================================================
+# TF-IDF Configuration
+# ==========================================================
 
-# TF-IDF Parameters
 NGRAM_RANGE = (1, 2)
-
 MIN_DF = 2
-
 MAX_DF = 0.95
+SUBLINEAR_TF = True
 
 # ==========================================================
 # Model Parameters
@@ -101,6 +101,20 @@ MAX_DF = 0.95
 LOGISTIC_REGRESSION_MAX_ITER = 1000
 
 NAIVE_BAYES_ALPHA = 1.0
+
+# ==========================================================
+# Linear SVM Hyperparameter Tuning
+# ==========================================================
+
+SVM_PARAM_GRID = {
+    "C": [0.1, 0.5, 1, 2, 5]
+}
+
+GRID_SEARCH_CV = 5
+
+GRID_SEARCH_SCORING = "f1"
+
+GRID_SEARCH_JOBS = -1
 
 # ==========================================================
 # Label Mapping
