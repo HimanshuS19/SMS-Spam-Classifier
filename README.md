@@ -14,13 +14,18 @@ Detect whether an SMS message is **Spam** or **Ham** using an end-to-end Machine
 
 Unlike many basic implementations, this project supports:
 
-- 📂 Automatic loading of multiple datasets
-- 🔄 Dataset merging & duplicate removal
-- 🧹 Advanced text preprocessing
-- 📊 Automatic model comparison
-- 🤖 Intelligent model selection
-- 🌐 Premium Flask web interface
-- 📈 Evaluation report generation
+- Automatic multi-dataset loading
+- Automatic dataset merging and duplicate removal
+- Advanced NLP preprocessing pipeline
+- Enhanced TF-IDF feature extraction (Bi-grams)
+- Hyperparameter tuning using GridSearchCV
+- Automatic model comparison
+- Automatic best model selection
+- 5-Fold Cross Validation
+- ROC Curve generation
+- Precision-Recall Curve generation
+- Prediction confidence estimation
+- Premium Flask Web Interface
 
 The project is designed with a modular architecture, making it easy to extend with additional datasets and machine learning models.
 
@@ -37,12 +42,13 @@ SMS spam messages are one of the most common forms of unwanted digital communica
 
 The application performs complete text preprocessing, feature extraction using TF-IDF, model training, evaluation, and prediction through an interactive Flask web interface.
 
-The project compares two classical Machine Learning algorithms:
+The project compares three supervised Machine Learning algorithms
 
 - Multinomial Naive Bayes
-- Logistic Regression
+- Best Selected Model (Optimized Linear SVM)
+- Optimized Linear Support Vector Machine (Linear SVM)
 
-The best-performing model is automatically selected and saved for deployment.
+The best-performing model is automatically selected using test accuracy after hyperparameter tuning.
 
 ---
 
@@ -50,11 +56,15 @@ The best-performing model is automatically selected and saved for deployment.
 
 ✔ Automatic Multi-Dataset Loading
 
+✔ Automatic Dataset Discovery
+
 ✔ Automatic Dataset Merging
 
 ✔ Duplicate SMS Removal
 
 ✔ Automatic Label Detection
+
+✔ Robust CSV/Excel/JSON Loader
 
 ✔ NLP Text Cleaning
 
@@ -62,7 +72,9 @@ The best-performing model is automatically selected and saved for deployment.
 
 ✔ Porter Stemming
 
-✔ TF-IDF Vectorization
+✔ Enhanced TF-IDF Feature Extraction
+
+✔ Unigram + Bigram Features
 
 ✔ Train/Test Split
 
@@ -70,23 +82,37 @@ The best-performing model is automatically selected and saved for deployment.
 
 ✔ Logistic Regression
 
-✔ Automatic Best Model Selection
+✔ Optimized Linear SVM
 
-✔ Model Performance Evaluation
+✔ Hyperparameter Tuning (GridSearchCV)
+
+✔ 5-Fold Cross Validation
+
+✔ Automatic Best Model Selection
 
 ✔ Classification Report
 
 ✔ Confusion Matrix
 
-✔ Prediction Confidence
+✔ ROC Curve
+
+✔ Precision-Recall Curve
+
+✔ Prediction Confidence Score
+
+✔ Evaluation Report
+
+✔ Model Comparison Chart
 
 ✔ Interactive Flask Web Interface
 
-✔ Premium Dark Theme UI
+✔ Responsive UI
 
-✔ Animated Background
+✔ Character Counter
 
-✔ Responsive Design
+✔ Probability Bars
+
+✔ Premium Dark Theme
 
 ✔ Modular Project Structure
 
@@ -103,31 +129,58 @@ Dataset Folder
 Scan All Datasets
       │
       ▼
-Merge Datasets
+Load & Merge Datasets
       │
       ▼
-Remove Duplicates
+Remove Duplicate Records
       │
       ▼
 Encode Labels
       │
       ▼
-Clean Text
+Text Preprocessing
       │
       ▼
-TF-IDF
+Enhanced TF-IDF Feature Extraction
       │
       ▼
-Train Models
+Train Machine Learning Models
       │
-      ▼
-Compare Models
+      ├──────────────► Multinomial Naive Bayes
       │
-      ▼
-Best Model Saved
+      ├──────────────► Logistic Regression
       │
-      ▼
-Prediction
+      └──────────────► Optimized Linear SVM
+                             │
+                             ▼
+                   Hyperparameter Tuning
+                       (GridSearchCV)
+                             │
+                             ▼
+                  5-Fold Cross Validation
+                             │
+                             ▼
+                     Compare Model Performance
+                             │
+                             ▼
+                 Select Best Performing Model
+                             │
+                             ▼
+                     Save Trained Model
+                             │
+                             ▼
+                 Model Performance Evaluation
+                             │
+            ┌────────────────┼────────────────┐
+            ▼                ▼                ▼
+   Confusion Matrix     ROC Curve     Precision-Recall Curve
+            │                │                │
+            └────────────────┼────────────────┘
+                             ▼
+                  Generate Evaluation Report
+                             │
+                             ▼
+                    Predict New SMS Messages
 ```
 
 ---
@@ -152,9 +205,13 @@ SMS-Spam-Classifier/
 │   └── experimentation.ipynb
 │
 ├── outputs/
-│   ├── confusion_matrix.png
-│   ├── model_comparison.png
-│   └── evaluation_report.txt
+│      ├── confusion_matrix.png
+│      ├── model_comparison.png
+│      ├── evaluation_report.txt
+│      ├── roc_curve.png
+│      ├── precision_recall_curve.png
+│      ├── cross_validation_report.txt
+│      └── evaluation_report.txt
 │
 ├── src/
 │   ├── config.py
@@ -191,7 +248,13 @@ SMS-Spam-Classifier/
 ### Machine Learning
 
 - Scikit-Learn
+
+- GridSearchCV
+
+- LinearSVM
+
 - NumPy
+
 - Pandas
 
 ### Natural Language Processing
@@ -224,6 +287,7 @@ The project automatically scans the **dataset/** folder and loads every supporte
 
 Supported formats
 
+- TSV
 - CSV
 - Excel (.xlsx)
 - Excel (.xls)
@@ -387,11 +451,11 @@ Prediction Result
 
 Two Machine Learning algorithms were trained and compared.
 
-| Model | Accuracy |
-|--------|----------|
-| Multinomial Naive Bayes | 96.77% |
-| Logistic Regression | **96.95%** |
-
+|           Model         |   Accuracy |
+|-------------------------|------------|
+| Multinomial Naive Bayes | 96.77%     |
+| Logistic Regression     | **94.01%** |
+| Optimized Linear SVM    | **96.54%** |
 The Logistic Regression model achieved the highest accuracy and was selected as the final prediction model.
 
 ---
@@ -400,12 +464,14 @@ The Logistic Regression model achieved the highest accuracy and was selected as 
 
 Final Logistic Regression Model
 
-| Metric | Score |
-|---------|--------|
-| Accuracy | **96.95%** |
-| Precision | **99.15%** |
-| Recall | **77.85%** |
-| F1 Score | **87.22%** |
+| Metric      | Score      |
+|-------------|------------|
+| Accuracy    | **96.95%** |
+| Precision   | **96.15%** |
+| Recall      | **89.85%** |
+| F1 Score    | **92.22%** |
+| ROC-AUC     | **98.85%** |
+|Avg Precision| **97.22%** |
 
 The model provides high precision for spam detection, reducing the likelihood of legitimate messages being incorrectly classified as spam.
 
@@ -461,6 +527,8 @@ Includes
 - Precision
 - Recall
 - F1 Score
+- ROC-AUC
+- Average Precision
 - Classification Report
 
 ---
@@ -534,23 +602,19 @@ assets/result.png
 
 Planned enhancements include:
 
-- Support 50K+ SMS datasets
-- Hyperparameter tuning
-- Character-level TF-IDF
-- N-gram Features
-- Linear SVM
-- Random Forest
-- XGBoost
-- CatBoost
-- LightGBM
-- Deep Learning (LSTM)
-- Transformer Models (BERT)
-- Explainable AI (SHAP/LIME)
-- Docker Deployment
-- REST API
-- CI/CD Pipeline
-- Model Versioning
-- Automatic Dataset Download
+• Random Forest
+• XGBoost
+• LightGBM
+• CatBoost
+• Deep Learning (LSTM)
+• BERT / DistilBERT
+• Explainable AI (SHAP)
+• Docker Deployment
+• REST API
+• CI/CD using GitHub Actions
+• MLflow Model Versioning
+• ONNX Model Export
+• Streamlit Dashboard
 
 ---
 
@@ -618,6 +682,6 @@ It helps support future development and encourages more open-source Machine Lear
 
 Built with ❤️ using
 
-**Python • Flask • Scikit-Learn • NLP • Machine Learning**
+**Python • Flask • Scikit-Learn • Enhanced TF-IDF • Optimized Linear SVM • Machine Learning**
 
 </div>
