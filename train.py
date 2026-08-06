@@ -32,6 +32,7 @@ from src.feature_engineering import (
 from src.model_training import (
     train_naive_bayes,
     train_logistic_regression,
+    train_linear_svm,
     compare_models,
     save_model,
 )
@@ -108,6 +109,11 @@ def main():
         y_train,
     )
 
+    svm_model, svm_time = train_linear_svm(
+        X_train,
+        y_train,
+    )
+
     # ------------------------------------------------------
     # Step 5 : Compare Models
     # ------------------------------------------------------
@@ -121,6 +127,7 @@ def main():
     ) = compare_models(
         nb_model,
         lr_model,
+        svm_model,
         X_test,
         y_test,
     )
@@ -156,6 +163,7 @@ def main():
 
     print(f"\nNaive Bayes Time   : {nb_time:.4f} sec")
     print(f"Logistic Reg. Time : {lr_time:.4f} sec")
+    print(f"Linear SVM Time    : {svm_time:.4f} sec")
     print(f"Total Pipeline Time: {overall_time:.2f} sec")
 
     print("\nGenerated Files")

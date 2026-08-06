@@ -12,6 +12,7 @@ import time
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
 
 from src.config import (
     LOGISTIC_REGRESSION_MAX_ITER,
@@ -89,6 +90,46 @@ def train_logistic_regression(X_train, y_train):
 
     return model, training_time
 
+# ==========================================================
+# Train Linear SVM
+# ==========================================================
+
+def train_linear_svm(X_train, y_train):
+    """
+    Train a Linear Support Vector Machine classifier.
+
+    Returns
+    -------
+    tuple
+        (model, training_time)
+    """
+
+    print("\nTraining Linear SVM...")
+
+    start_time = time.perf_counter()
+
+    model = LinearSVC(
+        random_state=RANDOM_STATE,
+    )
+
+    model.fit(
+        X_train,
+        y_train,
+    )
+
+    training_time = (
+        time.perf_counter()
+        - start_time
+    )
+
+    print(
+        f"✔ Completed in {training_time:.4f} seconds"
+    )
+
+    return (
+        model,
+        training_time,
+    )
 
 # ==========================================================
 # Compare Models
@@ -97,11 +138,12 @@ def train_logistic_regression(X_train, y_train):
 def compare_models(
     nb_model,
     lr_model,
+    svm_model,
     X_test,
     y_test,
 ):
     """
-    Compare models using accuracy.
+    Compare all trained models using accuracy.
 
     Returns
     -------
@@ -123,24 +165,44 @@ def compare_models(
         lr_model.predict(X_test),
     )
 
+    svm_accuracy = accuracy_score(
+        y_test,
+        svm_model.predict(X_test),
+    )
+
     scores = {
         "Naive Bayes": nb_accuracy,
         "Logistic Regression": lr_accuracy,
+        "Linear SVM": svm_accuracy,
     }
 
     print("\nModel Comparison")
     print("-" * 40)
 
     for name, score in scores.items():
-        print(f"{name:<25} : {score:.4f}")
 
-    if lr_accuracy >= nb_accuracy:
-        print("\n✔ Best Model: Logistic Regression")
-        return lr_model, "Logistic Regression", scores
+        print(
+            f"{name:<25} : {score:.4f}"
+        )
 
-    print("\n✔ Best Model: Naive Bayes")
-    return nb_model, "Naive Bayes", scores
+    best_name = max(
+        scores,
+        key=scores.get,
+    )
 
+    best_model = {
+        "Naive Bayes": nb_model,
+        "Logistic Regression": lr_model,
+        "Linear SVM": svm_model,
+    }[best_name]
+
+    print(f"\n✔ Best Model: {best_name}")
+
+    return (
+        best_model,
+        best_name,
+        scores,
+    )
 
 # ==========================================================
 # Save Model
@@ -240,8 +302,13 @@ if __name__ == "__main__":
     )
 
     lr_model, lr_time = train_logistic_regression(
-        X_train,
-        y_train,
+    X_train,
+    y_train,
+    )
+
+    svm_model, svm_time = train_linear_svm(
+    X_train,
+    y_train,
     )
 
     # Compare Models
@@ -252,6 +319,7 @@ if __name__ == "__main__":
     ) = compare_models(
         nb_model,
         lr_model,
+        svm_model,
         X_test,
         y_test,
     )
@@ -266,3 +334,4 @@ if __name__ == "__main__":
     print(f"Selected Model      : {best_name}")
     print(f"Naive Bayes Time    : {nb_time:.4f} sec")
     print(f"Logistic Regression : {lr_time:.4f} sec")
+    print(f"Linear SVM          : {svm_time:.4f} sec")
