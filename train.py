@@ -27,6 +27,7 @@ from src.preprocessing import preprocess_dataset
 from src.feature_engineering import (
     create_train_test_split,
     vectorize_data,
+    save_vectorizer,
 )
 
 from src.model_training import (
@@ -133,6 +134,7 @@ def main():
     )
 
     save_model(best_model)
+    save_vectorizer(vectorizer)
 
     # ------------------------------------------------------
     # Step 6 : Evaluation

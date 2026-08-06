@@ -152,6 +152,6 @@ DEBUG = True
 
 PROJECT_NAME = "SpamShield AI: Intelligent SMS Spam Detection System"
 
-PROJECT_VERSION = "2.0.0"
+PROJECT_VERSION = "3.0.0"
 
 AUTHOR = "Himanshu Singh"
