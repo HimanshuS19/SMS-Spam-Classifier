@@ -18,6 +18,10 @@ from sklearn.metrics import (
     f1_score,
     classification_report,
     confusion_matrix,
+    roc_curve,
+    roc_auc_score,
+    precision_recall_curve,
+    average_precision_score,
 )
 
 from src.config import (
@@ -25,6 +29,8 @@ from src.config import (
     CONFUSION_MATRIX_FILE,
     MODEL_COMPARISON_FILE,
     EVALUATION_REPORT_FILE,
+    ROC_CURVE_FILE,
+    PRECISION_RECALL_CURVE_FILE,
     LABEL_NAMES,
 )
 
@@ -36,60 +42,83 @@ from src.config import (
 def evaluate_model(model, X_test, y_test):
     """
     Evaluate a trained model.
-
-    Parameters
-    ----------
-    model
-        Trained machine learning model.
-
-    X_test
-        Testing feature matrix.
-
-    y_test
-        True labels.
-
-    Returns
-    -------
-    dict
-        Dictionary containing evaluation metrics.
     """
 
     predictions = model.predict(X_test)
 
+    # ----------------------------------------
+    # Prediction scores
+    # ----------------------------------------
+
+    if hasattr(
+        model,
+        "predict_proba",
+    ):
+
+        prediction_scores = (
+            model.predict_proba(
+                X_test
+            )[:, 1]
+        )
+
+    else:
+
+        prediction_scores = (
+            model.decision_function(
+                X_test
+            )
+        )
+
     metrics = {
+
         "accuracy": accuracy_score(
             y_test,
             predictions,
         ),
+
         "precision": precision_score(
             y_test,
             predictions,
             zero_division=0,
         ),
+
         "recall": recall_score(
             y_test,
             predictions,
             zero_division=0,
         ),
+
         "f1_score": f1_score(
             y_test,
             predictions,
             zero_division=0,
         ),
+
+        "roc_auc": roc_auc_score(
+            y_test,
+            prediction_scores,
+        ),
+
+        "average_precision": average_precision_score(
+            y_test,
+            prediction_scores,
+        ),
+
         "classification_report": classification_report(
             y_test,
             predictions,
             target_names=LABEL_NAMES,
             zero_division=0,
         ),
+
         "confusion_matrix": confusion_matrix(
             y_test,
             predictions,
         ),
+
     }
 
     return metrics
-
 
 # ==========================================================
 # Print Metrics
@@ -108,6 +137,8 @@ def print_metrics(metrics):
     print(f"Precision: {metrics['precision']:.4f}")
     print(f"Recall   : {metrics['recall']:.4f}")
     print(f"F1 Score : {metrics['f1_score']:.4f}")
+    print( f"ROC-AUC  : {metrics['roc_auc']:.4f}")
+    print(f"Avg Precision : {metrics['average_precision']:.4f}")
 
     print("\nClassification Report\n")
 
@@ -155,6 +186,14 @@ def save_evaluation_report(metrics):
             file.write(
                 f"F1 Score : {metrics['f1_score']:.4f}\n\n"
             )
+
+            file.write(
+            f"ROC-AUC  : {metrics['roc_auc']:.4f}\n"
+            )
+
+            file.write(
+            f"Average Precision : {metrics['average_precision']:.4f}\n\n"
+            )   
 
             file.write("Classification Report\n")
             file.write("-" * 45)
@@ -283,6 +322,182 @@ def plot_model_comparison(scores):
 
 
 # ==========================================================
+# Plot ROC Curve
+# ==========================================================
+
+def plot_roc_curve(
+    model,
+    X_test,
+    y_test,
+):
+    """
+    Plot and save the ROC Curve.
+    Supports both probability-based models
+    and Linear SVM.
+    """
+
+    OUTPUT_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    # ----------------------------------------
+    # Prediction Scores
+    # ----------------------------------------
+
+    if hasattr(
+        model,
+        "predict_proba",
+    ):
+
+        scores = model.predict_proba(
+            X_test
+        )[:, 1]
+
+    else:
+
+        scores = model.decision_function(
+            X_test
+        )
+
+    # ----------------------------------------
+    # ROC
+    # ----------------------------------------
+
+    fpr, tpr, _ = roc_curve(
+        y_test,
+        scores,
+    )
+
+    auc_score = roc_auc_score(
+        y_test,
+        scores,
+    )
+
+    plt.figure(figsize=(7, 6))
+
+    plt.plot(
+        fpr,
+        tpr,
+        linewidth=2,
+        label=f"AUC = {auc_score:.4f}",
+    )
+
+    plt.plot(
+        [0, 1],
+        [0, 1],
+        linestyle="--",
+    )
+
+    plt.xlabel("False Positive Rate")
+
+    plt.ylabel("True Positive Rate")
+
+    plt.title("ROC Curve")
+
+    plt.legend(loc="lower right")
+
+    plt.tight_layout()
+
+    plt.savefig(
+        ROC_CURVE_FILE,
+        dpi=300,
+    )
+
+    plt.close()
+
+    print("\n✔ ROC Curve saved")
+    print(ROC_CURVE_FILE)
+
+
+# ==========================================================
+# Plot Precision-Recall Curve
+# ==========================================================
+
+def plot_precision_recall_curve(
+    model,
+    X_test,
+    y_test,
+):
+    """
+    Plot and save the Precision-Recall Curve.
+    Supports both probability-based models
+    and Linear SVM.
+    """
+
+    OUTPUT_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    # ----------------------------------------
+    # Prediction Scores
+    # ----------------------------------------
+
+    if hasattr(
+        model,
+        "predict_proba",
+    ):
+
+        scores = model.predict_proba(
+            X_test
+        )[:, 1]
+
+    else:
+
+        scores = model.decision_function(
+            X_test
+        )
+
+    # ----------------------------------------
+    # Precision Recall
+    # ----------------------------------------
+
+    precision, recall, _ = (
+        precision_recall_curve(
+            y_test,
+            scores,
+        )
+    )
+
+    ap_score = average_precision_score(
+        y_test,
+        scores,
+    )
+
+    plt.figure(figsize=(7, 6))
+
+    plt.plot(
+        recall,
+        precision,
+        linewidth=2,
+        label=f"AP = {ap_score:.4f}",
+    )
+
+    plt.xlabel("Recall")
+
+    plt.ylabel("Precision")
+
+    plt.title("Precision-Recall Curve")
+
+    plt.legend(loc="lower left")
+
+    plt.tight_layout()
+
+    plt.savefig(
+        PRECISION_RECALL_CURVE_FILE,
+        dpi=300,
+    )
+
+    plt.close()
+
+    print("\n✔ Precision-Recall Curve saved")
+    print(
+        PRECISION_RECALL_CURVE_FILE
+    )
+
+
+# ==========================================================
 # Complete Evaluation Pipeline
 # ==========================================================
 
@@ -294,11 +509,6 @@ def evaluate_and_save(
 ):
     """
     Runs the complete evaluation pipeline.
-
-    Returns
-    -------
-    dict
-        Evaluation metrics.
     """
 
     metrics = evaluate_model(
@@ -307,16 +517,35 @@ def evaluate_and_save(
         y_test,
     )
 
-    print_metrics(metrics)
+    print_metrics(
+        metrics
+    )
 
-    save_evaluation_report(metrics)
+    save_evaluation_report(
+        metrics
+    )
 
-    plot_confusion_matrix(metrics)
+    plot_confusion_matrix(
+        metrics
+    )
 
-    plot_model_comparison(scores)
+    plot_model_comparison(
+        scores
+    )
+
+    plot_roc_curve(
+        model,
+        X_test,
+        y_test,
+    )
+
+    plot_precision_recall_curve(
+        model,
+        X_test,
+        y_test,
+    )
 
     return metrics
-
 
 # ==========================================================
 # Module Testing

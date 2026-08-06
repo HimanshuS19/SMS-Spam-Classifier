@@ -79,6 +79,10 @@ EVALUATION_REPORT_FILE = OUTPUT_DIR / "evaluation_report.txt"
 
 CROSS_VALIDATION_REPORT_FILE = ( OUTPUT_DIR / "cross_validation_report.txt" )
 
+ROC_CURVE_FILE = OUTPUT_DIR / "roc_curve.png"
+
+PRECISION_RECALL_CURVE_FILE = (  OUTPUT_DIR / "precision_recall_curve.png" )
+
 # ==========================================================
 # Machine Learning Settings
 # ==========================================================
