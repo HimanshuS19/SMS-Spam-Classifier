@@ -15,6 +15,9 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import GridSearchCV
 
+from sklearn.model_selection import cross_validate
+from sklearn.model_selection import StratifiedKFold
+
 from src.config import (
     LOGISTIC_REGRESSION_MAX_ITER,
     MODEL_DIR,
@@ -25,6 +28,8 @@ from src.config import (
     GRID_SEARCH_CV,
     GRID_SEARCH_SCORING,
     GRID_SEARCH_JOBS,
+    OUTPUT_DIR,
+    CROSS_VALIDATION_REPORT_FILE,
 )
 
 from src.utils import (
@@ -156,6 +161,138 @@ def train_linear_svm(X_train, y_train):
     return (
         grid_search.best_estimator_,
         training_time,
+    )
+
+# ==========================================================
+# Cross Validation
+# ==========================================================
+
+def cross_validate_models(
+    nb_model,
+    lr_model,
+    svm_model,
+    X_train,
+    y_train,
+):
+    """
+    Perform 5-Fold Stratified Cross Validation
+    for all trained models.
+    """
+
+    print("\nCross Validation")
+    print("-" * 40)
+
+    cv = StratifiedKFold(
+        n_splits=5,
+        shuffle=True,
+        random_state=RANDOM_STATE,
+    )
+
+    models = {
+
+        "Naive Bayes": nb_model,
+
+        "Logistic Regression": lr_model,
+
+        "Optimized Linear SVM": svm_model,
+
+    }
+
+    report = []
+
+    OUTPUT_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    for name, model in models.items():
+
+        scores = cross_validate(
+
+            estimator=model,
+
+            X=X_train,
+
+            y=y_train,
+
+            cv=cv,
+
+            scoring=[
+                "accuracy",
+                "precision",
+                "recall",
+                "f1",
+            ],
+
+            n_jobs=-1,
+
+        )
+
+        accuracy = scores[
+            "test_accuracy"
+        ].mean()
+
+        precision = scores[
+            "test_precision"
+        ].mean()
+
+        recall = scores[
+            "test_recall"
+        ].mean()
+
+        f1 = scores[
+            "test_f1"
+        ].mean()
+
+        print(f"\n{name}")
+
+        print(
+            f"Accuracy : {accuracy:.4f}"
+        )
+
+        print(
+            f"Precision: {precision:.4f}"
+        )
+
+        print(
+            f"Recall   : {recall:.4f}"
+        )
+
+        print(
+            f"F1 Score : {f1:.4f}"
+        )
+
+        report.append(
+
+            f"{name}\n"
+
+            f"Accuracy : {accuracy:.4f}\n"
+
+            f"Precision: {precision:.4f}\n"
+
+            f"Recall   : {recall:.4f}\n"
+
+            f"F1 Score : {f1:.4f}\n"
+
+            + "-" * 40
+            + "\n"
+
+        )
+
+    with open(
+        CROSS_VALIDATION_REPORT_FILE,
+        "w",
+        encoding="utf-8",
+    ) as file:
+
+        file.writelines(report)
+
+    print(
+        "\n✔ Cross Validation report saved"
+    )
+
+    print(
+        CROSS_VALIDATION_REPORT_FILE
     )
 # ==========================================================
 # Compare Models
@@ -333,6 +470,14 @@ if __name__ == "__main__":
     )
 
     svm_model, svm_time = train_linear_svm(
+    X_train,
+    y_train,
+    )
+
+    cross_validate_models(
+    nb_model,
+    lr_model,
+    svm_model,
     X_train,
     y_train,
     )

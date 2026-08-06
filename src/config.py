@@ -77,6 +77,8 @@ MODEL_COMPARISON_FILE = OUTPUT_DIR / "model_comparison.png"
 
 EVALUATION_REPORT_FILE = OUTPUT_DIR / "evaluation_report.txt"
 
+CROSS_VALIDATION_REPORT_FILE = ( OUTPUT_DIR / "cross_validation_report.txt" )
+
 # ==========================================================
 # Machine Learning Settings
 # ==========================================================

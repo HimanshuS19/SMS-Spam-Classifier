@@ -7,11 +7,16 @@ Loads the trained model and TF-IDF vectorizer,
 preprocesses incoming SMS text, and returns
 prediction along with confidence scores.
 
+Supports:
+- Multinomial Naive Bayes
+- Logistic Regression
+- Optimized Linear SVM
+
 Author: Himanshu Singh
 Project: SMS Spam Classifier
 """
 
-import numpy as np
+from scipy.special import expit
 
 from src.preprocessing import clean_text
 from src.config import (
@@ -31,10 +36,15 @@ from src.utils import (
 # ==========================================================
 
 try:
+
     model = load_pickle(MODEL_FILE)
-    vectorizer = load_pickle(VECTORIZER_FILE)
+
+    vectorizer = load_pickle(
+        VECTORIZER_FILE
+    )
 
 except Exception as e:
+
     raise RuntimeError(
         f"Unable to load trained model or vectorizer.\n{e}"
     )
@@ -51,7 +61,7 @@ def predict_sms(message: str) -> dict:
     Parameters
     ----------
     message : str
-        SMS message entered by the user.
+        SMS entered by the user.
 
     Returns
     -------
@@ -60,24 +70,89 @@ def predict_sms(message: str) -> dict:
     """
 
     if not isinstance(message, str):
-        raise TypeError("Input message must be a string.")
+
+        raise TypeError(
+            "Input message must be a string."
+        )
 
     message = validate_input(message)
 
     cleaned_text = clean_text(message)
 
-    vector = vectorizer.transform([cleaned_text])
+    vector = vectorizer.transform(
+        [cleaned_text]
+    )
 
-    prediction = int(model.predict(vector)[0])
+    prediction = int(
+        model.predict(vector)[0]
+    )
 
-    probabilities = model.predict_proba(vector)[0]
+    # --------------------------------------------------
+    # Models supporting probability estimates
+    # (Naive Bayes / Logistic Regression)
+    # --------------------------------------------------
 
-    ham_probability = float(probabilities[0])
-    spam_probability = float(probabilities[1])
+    if hasattr(model, "predict_proba"):
 
-    confidence = max(ham_probability, spam_probability)
+        probabilities = model.predict_proba(
+            vector
+        )[0]
 
-    label = "Spam" if prediction == 1 else "Ham"
+        ham_probability = float(
+            probabilities[0]
+        )
+
+        spam_probability = float(
+            probabilities[1]
+        )
+
+    # --------------------------------------------------
+    # Linear SVM
+    # Convert decision score into probability-like values
+    # --------------------------------------------------
+
+    elif hasattr(model, "decision_function"):
+
+        score = float(
+            model.decision_function(vector)[0]
+        )
+
+        spam_probability = float(
+            expit(score)
+        )
+
+        ham_probability = (
+            1.0 - spam_probability
+        )
+
+    # --------------------------------------------------
+    # Fallback
+    # --------------------------------------------------
+
+    else:
+
+        if prediction == 1:
+
+            spam_probability = 1.0
+
+            ham_probability = 0.0
+
+        else:
+
+            spam_probability = 0.0
+
+            ham_probability = 1.0
+
+    confidence = max(
+        ham_probability,
+        spam_probability,
+    )
+
+    label = (
+        "Spam"
+        if prediction == 1
+        else "Ham"
+    )
 
     return {
 
@@ -123,18 +198,35 @@ if __name__ == "__main__":
 
         try:
 
-            result = predict_sms(message)
+            result = predict_sms(
+                message
+            )
 
             print("\nPrediction Result")
             print("-" * 40)
 
-            print(f"Prediction       : {result['label']}")
-            print(f"Confidence       : {result['confidence']}%")
-            print(f"Ham Probability  : {result['ham_probability']}%")
-            print(f"Spam Probability : {result['spam_probability']}%")
-            print(f"Processed Text   : {result['clean_text']}")
+            print(
+                f"Prediction       : {result['label']}"
+            )
+
+            print(
+                f"Confidence       : {result['confidence']}%"
+            )
+
+            print(
+                f"Ham Probability  : {result['ham_probability']}%"
+            )
+
+            print(
+                f"Spam Probability : {result['spam_probability']}%"
+            )
+
+            print(
+                f"Processed Text   : {result['clean_text']}"
+            )
 
         except Exception as e:
+
             print(f"\nError: {e}")
 
     print("\nProgram Closed.")
